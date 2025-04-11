@@ -2,6 +2,10 @@
 
 ## Aufgabe 2
 
+
+
+```
+
 SHA2-256(services)= f6183055fd949f9c53d49ee620f85d0150123ea691d25ed1bba0c641b4ee2f48
 SHA1(services)= a0d7a229bf049f7fe17e8445226236e4024535d0
 SHA2-384(services)= f5c538da3dc434041306491a3a08481fb67315e424e3becc8e7b450c1a3779e3a6f0bc49c2032f36010e4cab73bbf018
@@ -21,6 +25,6 @@ openssl dgst -SHA3 services
 
 RIPEMD-160(services)= fd78561c8b038447e89e3bbce3c6d2f9432db1bd
 
-
+```
 
 
