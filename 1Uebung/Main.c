@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <time.h>
 #include "randomNumbers.c"
+#include "aufgabe4.c"
+
 
 void print_timeB() {
   time_t current_time;
@@ -26,7 +28,12 @@ int main() {
  // print_timeB();
 
 //getNumsUntilCorrectOne(10000,42);
-  numsUntilTwoSame(10000);
+ // numsUntilTwoSame(10000);
+
+    computeEntropy();
+
+
+
 
 
   return 0;
