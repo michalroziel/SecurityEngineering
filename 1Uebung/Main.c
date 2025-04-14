@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include "randomNumbers.c"
 
 void print_timeB() {
   time_t current_time;
@@ -21,7 +22,12 @@ void print_timeA() {
   printf("%s", time_string);
 }
 int main() {
-  print_timeA();
-  print_timeB();
+ // print_timeA();
+ // print_timeB();
+
+//getNumsUntilCorrectOne(10000,42);
+  numsUntilTwoSame(10000);
+
+
   return 0;
 }
