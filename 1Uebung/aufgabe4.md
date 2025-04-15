@@ -3,6 +3,15 @@
 
 ### Entropie von Wörtern in Deutsch und Englisch
 
+### Warum 28 Bits Entropie im XKCD COmic?
+
+- 16 Bits Entropie -> Englische Wörter
+- 1 Bit Capslock (meistens am Anfang)
+- 3 Bits häufige Ersetzungen
+- 4 Bits Sonderzeichen 
+- 3 Bits Zahlen
+- 1 Bit Reihenfolge von Sonderzeichen / Zahlen
+
 ---
 ### Was bedeutet Entropie hier?
 Mittels Entropie (Bits) können wir die möglichen Kombinationen

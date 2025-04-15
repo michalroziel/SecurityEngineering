@@ -11,7 +11,7 @@
 
 
 void computeEntropy(void) {
-    srand(time(NULL));
+  //  srand(time(NULL));
 
     float resultGER = log2(GERMANDICT);
     float resultENG = log2(ENGLISHDICT);
