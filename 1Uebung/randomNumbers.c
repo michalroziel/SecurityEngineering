@@ -22,9 +22,7 @@ void getNumsUntilCorrectOne(int upperLimit,int magicNum){
         // printf("The Number %d was guessed, no. of tries : %d", magicNum, guessCounter);
        total+= guessCounter;
     }
-
     int mittelWert = total / 10000;
-
     printf("der Mittelwert ist : %d ", mittelWert);
 }
 
