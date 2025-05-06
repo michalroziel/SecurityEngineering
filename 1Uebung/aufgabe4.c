@@ -8,6 +8,10 @@
 #define GERMANDICT 84578
 #define ENGLISHDICT 104334
 
+// Wir haben Wortlisten aus Wörterbüchern
+//  -> jedes Wort nur einmal, d.h gleich Wahrscheinlich
+// Ansonsten könnten wir die Shannon-Wahrscheinlichkeit nutzen
+// Entropie beschreibt wie Unvorhersehbar ein Ereignis ist
 
 
 void computeEntropy(void) {
