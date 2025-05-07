@@ -55,7 +55,7 @@ Ergebnis: Die Datei ist viel kleiner, z.B. nur wenige Kilobyte. Warum?
 
 
 
-Aufgabe 2 (Systemcalls)
+# Aufgabe 2 (Systemcalls)
 rm = rm removes each specified file.  By default, it does not remove directories.
 
 mv = Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
@@ -136,30 +136,43 @@ ln -s /usr/src /home/src
 
 sleep 50
 
+ wget https://repo1.maven.org/maven2/com/google/errorprone/error_prone_core/2.37.0/error_prone_core-2.37.0-with-dependencies.jar
+
+### d) System Calls
+
+rm : unlink()
+
+mv : rename() / unlink()
+
+chmod : write(2, "chmod: ", 7chmod: )
+
+chown : chown()
+
+mkdir : mkdirat(AT_FDCWD, "myProgramming", 0777) = 0
+
+rmdir : unlinkat(AT_FDCWD,"myProgramming/", AT_REMOVEDIR ) = 0
+
+kill : kill(15228, SIGTERM)
+
+sleep : nanosleep() oder clock_nanosleep()
+
+wget : socket(), connect(), send(), recv()
 
 
-╰─ wget https://repo1.maven.org/maven2/com/google/errorprone/error_prone_core/2.37.0/error_prone_core-2.37.0-with-dependencies.jar
-wget https://repo1.maven.org/maven2/io/github/eisop/dataflow-errorprone/3.49.1-eisop1/dataflow-errorprone-3.49.1-eisop1.jar
-javac \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
-  -J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-  -J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
-  -J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED \
-  -XDcompilePolicy=simple \
-  --should-stop=ifError=FLOW \
-  -processorpath error_prone_core-2.37.0-with-dependencies.jar:dataflow-errorprone-3.49.1-eisop1.jar \
-  '-Xplugin:ErrorProne' \
-  Demo.java
+# Aufgabe 3 (Inode Informationen)
+
+### stat( ) :
+function obtains information about the file pointed to by path.
+
+### lstat( ) :
+Ähnlich wie stat( ) außer wenn file ein symbolischer link ist, in diesem Case :
+lstat() returns information about the link, while stat() returns information about the file the link references.
 
 
 
+### fstat( ) :
 
+Ähnlich wie stat( ), aber anstatt von FileName haben wir FileDescriptor (geöffnete Datei)
 
 
 
