@@ -56,10 +56,6 @@ void printInfos(const char *filePath) {
         // File Size :
         printf("File size: %lld bytes\n", fileStat.st_size);
 
-
-
-
-
         // User iD :
         printf("UiD : %d\n", fileStat.st_uid);
 
@@ -93,35 +89,24 @@ void printInfos(const char *filePath) {
         printf("Last modified: \n");
         formatTime(fileStat.st_mtime);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }
 
 
 int main(int argc, char *argv[]) {
-
-    // Check if a file path was provided
-
+    // Check if at least one file path was provided
     if (argc < 2) {
-
-        printf("Usage: %s <filepath>\n", argv[0]);
+        printf("Usage: %s <filepath1> [filepath2] [filepath3] ...\n", argv[0]);
         return 1;
     }
 
-    // Call printInfos with the provided file path
-    printInfos(argv[1]);
+    // Process each file path provided
+    for (int i = 1; i < argc; i++) {
+        printInfos(argv[i]);
+
+        // Add separator between file outputs
+        printf("\n--- --- --- --- --- --- \n\n");
+    }
 
     return 0;
 }
