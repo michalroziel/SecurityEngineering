@@ -24,7 +24,7 @@ tar -cjf archive.tar.bz2 testfile testlink
 6)
 zip archive.zip testfile testlink
 
-tar tvf
+tar tvf 
 unzip -t
 
 
@@ -172,7 +172,7 @@ lstat() returns information about the link, while stat() returns information abo
 
 ### fstat( ) :
 
-Ähnlich wie stat( ), aber anstatt von FileName haben wir FileDescriptor (geöffnete Datei)   
+Ähnlich wie stat( ), aber anstatt von FileName haben wir FileDescriptor (geöffnete Datei)    
 
 ```bash
 File Infos for /dev/random:
