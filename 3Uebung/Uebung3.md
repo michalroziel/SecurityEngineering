@@ -60,15 +60,56 @@ diff -u replace.html replace2.html                                              
              Each output line is preceded by its relative line number in the file, starting at line 1.  The line number
              counter is reset for each file processed.  This option is ignored if -c, -L, -l, or -q is specified.
 
-``` shell
-egrep -n "Bayern" fussball-tabelle.html
-egrep -n "Bayern" fussball-tabelle.html | cut -c1
- > 2
 
- egrep -n "leverkusen" fussball-tabelle.html | cut -c1
-  > 3
+
+```shell
+
+grep '/vereine/' fussball-tabelle.html | \ ## sucht nacht vereine in der html datei
+
+
+sed -E 's/.*\/vereine\/([^\/]+)\/2025.*/\1/' | \  
+
+- sed -E : extended regex
+- Bevor /vereine/ kann alles stehen
+- matched alles zwischen /vereine/ und /2025
+- Rest wird ignored
+
+
+capturing groups :
+https://simpleregex.dev/capturing-groups/
+
+- ([^\/]+) ist eine capturing group
+- \1 ist der erste captured group
+- \1 sagt sed dass es den ganzen match nur mit der ersten capturing group ersetzen soll
+
+
+- Jetzt haben die Clubs noch Bindestriche im Namen
+
+sed 's/-/ /g' | \
+
+
+nl -w1 -s'. '
 
 ```
+
+
+```shell
+# KOMPLETTER COMMAND :
+
+grep '/vereine/' fussball-tabelle.html | \
+sed -E 's/.*\/vereine\/([^\/]+)\/2025.*/\1/' | \
+sed 's/-/ /g' | \
+nl -w1 -s'. '
+
+```
+
+
+  
+  
+
+  
+
+
 
 
 
