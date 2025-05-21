@@ -15,18 +15,44 @@ https://www.ntppool.org/zone/europe
 
 # Aufgabe 2 (Pipes in der Kommandozeile)
 
-## diff - Kommando
-```shell
-diff -u Bundesliga\ Tabelle2\ 2024_2025.html Bundesliga\ Tabelle\ 2024_2025.html
+## Stream–Editor sed:
+#### Alle <th\> durch <td\> ersetzt und die </th\> durch </td\>  (Open und Closing tags)
 
---- Bundesliga Tabelle2 2024_2025.html  2025-05-19 22:42:24
-+++ Bundesliga Tabelle 2024_2025.html   2025-05-19 22:39:57
-@@ -458,7 +458,7 @@
-         <div class="row">
-             <div class="col-md-8 col-xs-12 content-statistik content-divider">
+```shell
+
+sed -e "s:<th\>:<td\>:g" -e "s:</th>:</td>:g"<fussball-tabelle.html >fussball-tabelle2.html
 
 ```
-## egrep -n  Kommando
+
+### Beispiel sed :
+```shell
+
+sed -e "s:<th\>:<td\>:g" -e "s:</th>:</td>:g"<replace.html >replace2.html 
+```
+
+
+
+
+## diff - Kommando
+```html
+
+diff -u replace.html replace2.html                                                                                                                                          ─╯
+--- replace.html        2025-05-21 13:20:31
++++ replace2.html       2025-05-21 13:20:54
+@@ -1,7 +1,7 @@
+ <table>
+     <tr>
+-        <th>Team</th>
+-        <th>Punkte</th>
++        <td>Team</td>
++        <td>Punkte</td>
+     </tr>
+     <tr>
+         <td>Bayern München</td>
+
+```
+
+## Suchen von Mustern: grep, fgrep, egrep
 
 ### -n :
 

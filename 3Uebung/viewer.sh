@@ -25,13 +25,19 @@ less "$filename"
 elif echo "$filetype" | grep -q "PDF document"; then
   echo "$filename is a PDF file"
 
+  xpdf "$filename"
+
 
 elif echo "$filetype" | grep -q "OpenDocument"; then
   echo "$filename is an OpenDocument file"
 
+  libreoffice "$filename"
+
 
 elif echo "$filetype" | grep -q "executable"; then
   echo "$filename is an executable file"
+
+  sh "$filename"
 
 
 else
