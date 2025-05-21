@@ -1,67 +1,69 @@
 #!/bin/sh
 
-# Check Fehlerhafte Eingabe - Keine Datei angegeben
-# -eq > equal
+# -----------------------------------------------
+# 1. Eingabeprüfung
+# Prüfen, ob genau ein Argument (Dateiname) übergeben wurde
+# -----------------------------------------------
+
+# Keine Datei angegeben
 if [ "$#" -eq 0 ]; then
     echo "Fehler: Keine Datei angegeben."
     exit 1
 
-
-# Check Fehlerhafte Eingabe - zu Viele  Dateien angegeben
-# -gt >greater than
+# Zu viele Dateien angegeben
 elif [ "$#" -gt 1 ]; then
     echo "Fehler: Bitte nur eine Datei angeben."
     echo "Benutzung: $0 <filename>"
     exit 1
 fi
 
-filename="$1" # Dateiname aus dem ersten Argument
+# Speichere Dateinamen aus Argument
+filename="$1"
 
-# Prüfen, ob die Datei existiert und lesbar ist
+# -----------------------------------------------
+# 2. Existenz- und Lesbarkeitsprüfung
+# -----------------------------------------------
 if [ ! -r "$filename" ]; then
     echo "Fehler: Datei '$filename' existiert nicht oder ist nicht lesbar."
     exit 1
 fi
 
+# -----------------------------------------------
+# 3. Dateityp bestimmen
+# Der Befehl `file` liefert Informationen über den Typ
+# -----------------------------------------------
 filetype="$(file "$filename")"
 
-## Unterscheiden :
+# -----------------------------------------------
+# 4. Dateityp erkennen und passende Anwendung starten
+# -----------------------------------------------
 
-## Bilddateien : xv  bzw eog (eye of gnome)
-## PDF-Dateien : xpdf
-## Textdateien : less
-## Open-Document Dateien : libre office
-
-
+# Textdateien (enthält .txt)
 if echo "$filetype" | grep -q ".txt"; then
-  echo "$filename is a text file"
+    echo "$filename ist eine Textdatei"
+    less "$filename"
 
-less "$filename"
-
-
+# PDF-Dateien
 elif echo "$filetype" | grep -q "PDF document"; then
-  echo "$filename is a PDF file"
+    echo "$filename ist eine PDF-Datei"
+    xpdf "$filename"
 
-  xpdf "$filename"
-
-
+# OpenDocument-Dateien (z.B. LibreOffice-Dateien)
 elif echo "$filetype" | grep -q "OpenDocument"; then
-  echo "$filename is an OpenDocument file"
+    echo "$filename ist eine OpenDocument-Datei"
+    libreoffice "$filename"
 
-  libreoffice "$filename"
+# Bilddateien (z.B. PNG, JPG, etc.)
+elif echo "$filetype" | grep -q "image"; then
+    echo "$filename ist eine Bilddatei"
+    eog "$filename"
 
-  elif echo "$filetype" | grep -q "image"; then
-    echo "$filename is a graphic file"
-
-    eog  "$filename"
-
-
+# Ausführbare Dateien
 elif echo "$filetype" | grep -q "executable"; then
-  echo "$filename is an executable file"
+    echo "$filename ist eine ausführbare Datei"
+    sh "$filename"
 
-  sh "$filename"
-
-
+# Unbekannter Typ
 else
-  echo "$filename is of unknown type"
+    echo "$filename ist ein unbekannter Dateityp"
 fi
