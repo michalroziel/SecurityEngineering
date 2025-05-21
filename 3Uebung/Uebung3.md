@@ -1,10 +1,40 @@
 # Aufgabe 1
 ## ntpdate:
+
+Sets he local time by polling NTP (Network Time Protocol) servers. 
+muss als root laufen, außer mit -q, da Clock nicht gesetzt wird.
+
+```bash
+ntpdate -q -d ntp1.hiz-saarland.de
+ntpdig: querying 134.96.7.68 (ntp1.hiz-saarland.de)
+org t1: ebd8d601.219cf000 rec t2: ebd8d601.33c5d908
+xmt t3: ebd8d601.33cd5104 dst t4: ebd8d601.270f0000
+org t1: 1747867521.131301 rec t2: 1747867521.202238
+xmt t3: 1747867521.202352 dst t4: 1747867521.152573
+rec-org t21: 0.070937  xmt-dst t34: 0.049779
+2025-05-21 22:45:21.202351 (+0000) +0.060358 +/- 0.010579 ntp1.hiz-saarland.de 134.96.7.68 s2 no-leap
+
+wir haben 4 Zeiten: org, rec, xmt, dst
+org - origin time
+rec - receive time 
+xmt - Transmit Timestamp 
+dst - destination timestamp 
+
+Letzte Zeile : Zeit in UTC, Offset, und Fehlerquote
+
+Die Unterschiede zwischen diesen Timestamps werden verwenden , um Round-Trip Zeiten zu berechnen
+sowie, den Offset der locla clock mit der server clock zu bestimmen
+
+
+
+```
+
+
 -q: Query only – don't set the clock.
 
 -d: Enable  the debugging mode, in which ntpdate will go through all
-the steps, but not adjust the local clock and using an  unprivi‐
-leged  port.  Information useful for general debugging will also
+the steps, but not adjust the local clock and using an  unprivileged‐
+  port.  Information useful for general debugging will also
 be printed.
 
 ntpdate -q ntp[1-3].hiz-saarland.de
