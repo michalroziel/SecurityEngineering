@@ -22,7 +22,7 @@ filetype="$(file "$filename")"
 
 ## Unterscheiden :
 
-## Bilddateien : xv
+## Bilddateien : xv  bzw eog (eye of gnome)
 ## PDF-Dateien : xpdf
 ## Textdateien : less
 ## Open-Document Dateien : libre office
@@ -44,6 +44,11 @@ elif echo "$filetype" | grep -q "OpenDocument"; then
   echo "$filename is an OpenDocument file"
 
   libreoffice "$filename"
+
+  elif echo "$filetype" | grep -q "image"; then
+    echo "$filename is a graphic file"
+
+    eog  "$filename"
 
 
 elif echo "$filetype" | grep -q "executable"; then

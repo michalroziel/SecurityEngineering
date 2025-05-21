@@ -87,8 +87,15 @@ https://simpleregex.dev/capturing-groups/
 
 sed 's/-/ /g' | \
 
+- g > globally, not just first match 
+- syntax (s/old/new/)
 
 nl -w1 -s'. '
+
+
+nl : number lines 
+-s :seperator zwischen einträgen : punkt und Leerzeichen 
+- w1 : setzt die Breite auf 1
 
 ```
 
