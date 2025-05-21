@@ -41,6 +41,22 @@ ntpdate -q ntp[1-3].hiz-saarland.de
 
 ntpdate -q ptbtime[1-4].ptb.de
 
+```shell
+ntpdate -q ptbtime1.ptb.de
+2025-05-21 22:57:16.849579 (+0000) -0.022671 +/- 0.013214 ptbtime1.ptb.de 192.53.103.108 s1 no-leap
+
+-  22:57:16.849579 - aktuelle Zeit die gemeldet wurde
+- -0.022671 - Offset der lokalen Uhr (- daher zu schnell)
+- +/- 0.013214 - Fehlerquote
+- ptbtime1.ptb.de 192.53.103.108 - Host Name und iP des abgefragten Hosts
+- s1 - Stratum 1, hohe vertrauenswürdigkeit, no leap : keine Schaltsekunde
+
+
+```
+
+
+
+
 https://www.ntppool.org/zone/europe
 
 # Aufgabe 2 (Pipes in der Kommandozeile)
