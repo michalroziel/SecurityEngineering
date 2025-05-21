@@ -48,15 +48,18 @@ ZIEL="${DATEI%.*}.mp3"
 # ----------------------------------------------------
 # Ausgabe: Start der Konvertierung
 # ----------------------------------------------------
-echo "Konvertiere '$DATEI' → '$ZIEL' ..."
+echo " Wir Konvertieren nun  '$DATEI' zu  '$ZIEL' !"
 
 # ----------------------------------------------------
 # ffmpeg Befehl zum Konvertieren:
-# -loglevel error → nur Fehler ausgeben
+# -loglevel error → wir wollen nur Fehler ausgeben
 # -y → vorhandene Zieldatei ohne Nachfrage überschreiben
 # -i → Eingabedatei
 # -codec:a libmp3lame → MP3 Codec verwenden
 # -qscale:a 2 → Qualitätsstufe für MP3 (niedriger Wert = bessere Qualität)
+#----------------------------------------------------
+# https://stackoverflow.com/questions/3255674/convert-audio-files-to-mp3-using-ffmpeg
+# https://trac.ffmpeg.org/wiki/Encode/MP3
 # ----------------------------------------------------
 ffmpeg -loglevel error -y -i "$DATEI" -codec:a libmp3lame -qscale:a 2 "$ZIEL"
 

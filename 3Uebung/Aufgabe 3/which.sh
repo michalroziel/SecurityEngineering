@@ -24,12 +24,21 @@ PROGRAMM="$1"
 # IFS=":" setzt den internen Feldtrenner auf ":",
 # damit die Schleife korrekt durch jeden einzelnen Pfad läuft.
 # ----------------------------------------------------------
+# https://bash.cyberciti.biz/guide/$IFS
+# ----------------------------------------------------------
+
 IFS=":"  # IFS = Internal Field Separator
+## Nun können wir die PATH mit foreach durchlaufen
 
 # Durchlaufe jedes Verzeichnis im PATH
 for DIR in $PATH; do
+
     # Prüfen, ob die Datei im Verzeichnis existiert UND ausführbar ist
     # UND keine Verzeichnis ist
+    # man test :  -d file True if file exists and is a directory.
+    # man test :  -x file True if file exists and is executable.  True indicates only that the execute flag is on.
+    # If file is a directory, true indicates that file can be searched.
+
     if [ -x "$DIR/$PROGRAMM" ] && [ ! -d "$DIR/$PROGRAMM" ]; then
         echo "$DIR/$PROGRAMM"  # Gefunden → gib den vollständigen Pfad aus
         exit 0  # Erfolgreich beenden
