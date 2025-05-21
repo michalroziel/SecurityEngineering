@@ -1,16 +1,21 @@
 #!/bin/sh
 
-# Check Fehlerhafte Eingabe
+# Check Fehlerhafte Eingabe - Keine Datei angegeben
+# -eq > equal
 if [ "$#" -eq 0 ]; then
     echo "Fehler: Keine Datei angegeben."
     exit 1
+
+
+# Check Fehlerhafte Eingabe - zu Viele  Dateien angegeben
+# -gt >greater than
 elif [ "$#" -gt 1 ]; then
     echo "Fehler: Bitte nur eine Datei angeben."
-    echo "Usage: $0 <filename>"
+    echo "Benutzung: $0 <filename>"
     exit 1
 fi
 
-filename="$1"
+filename="$1" # Dateiname aus dem ersten Argument
 
 # Prüfen, ob die Datei existiert und lesbar ist
 if [ ! -r "$filename" ]; then
