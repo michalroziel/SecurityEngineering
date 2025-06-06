@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Werror
-TARGET=fileInfos
-SRC=2Uebung/fileInfos.c
+TARGET=forkExec
+SRC=4Uebung/forkExec.c
 
 all: $(TARGET)
 
