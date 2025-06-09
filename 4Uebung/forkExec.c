@@ -26,24 +26,29 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
+    // Child process
+    if (setpriority(PRIO_PROCESS, 0, 19) < 0) {
+        perror("setpriority failed");
+        exit(EXIT_FAILURE);
+    }
+
     if (pid == 0) {
-        // Child process
-        if (setpriority(PRIO_PROCESS, 0, 19) < 0) {
-            perror("setpriority failed");
-            exit(EXIT_FAILURE);
-        }
+
+        printf("Prio : Prozess %d wurde gestartet\n", PRIO_PROCESS);
 
         // Execute the program with the provided arguments
-        execvp(argv[1], &argv[1]);
+
+        execvp(argv[1], argv+1);
 
         // If execvp returns, there was an error
         perror("execvp failed");
         exit(EXIT_FAILURE);
     } else {
         // Parent process
-        printf("Started process with PID %d\n", pid);
+        printf("Started parent process with PID %d\n", pid);
 
         int status;
+        printf("Priorität des Kindprozesses : %d\n ", getpriority(PRIO_PROCESS, pid ));
         if (waitpid(pid, &status, 0) < 0) {
             perror("waitpid failed");
             exit(EXIT_FAILURE);
