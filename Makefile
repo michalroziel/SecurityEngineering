@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Werror
-TARGET=forkExec
-SRC=4Uebung/forkExec.c
+TARGET=APP
+SRC=4Uebung/semaphore.c
 
 all: $(TARGET)
 
