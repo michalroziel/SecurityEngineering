@@ -1,8 +1,3 @@
-//
-// Created by Michal Roziel on 01.06.25.
-//
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,7 +10,7 @@
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s prog [args...]\n", argv[0]);
+        printf("Usage: %s prog [args...]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -26,44 +21,21 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-
-
     if (pid == 0) {
-
-
         // Child process
-        if (setpriority(PRIO_PROCESS, 0, 19) < 0) {
-            perror("setpriority failed");
-            exit(EXIT_FAILURE);
-        }
-
-        printf("Prio : Prozess %d wurde gestartet\n", PRIO_PROCESS);
-
-        // Execute the program with the provided arguments
+        setpriority(PRIO_PROCESS, 0, 19);
 
         execvp(argv[1], argv+1);
 
-        // If execvp returns, there was an error
+        // If execvp returns, it means there was an error
         perror("execvp failed");
         exit(EXIT_FAILURE);
     } else {
         // Parent process
-        printf("Started parent process with PID %d\n", pid);
+        printf("Started child process with PID %d\n", pid);
 
         int status;
-
-        sleep(1);
-
-        int prio_child = getpriority(PRIO_PROCESS, pid );
-
-        printf("Priorität des Kindprozesses : %d\n " , prio_child);
-
-
-
-        if (waitpid(pid, &status, 0) < 0) {
-            perror("waitpid failed");
-            exit(EXIT_FAILURE);
-        }
+        wait(&status);
 
         if (WIFEXITED(status)) {
             printf("Process exited with return code %d\n", WEXITSTATUS(status));
@@ -78,3 +50,5 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+
+

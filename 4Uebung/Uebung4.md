@@ -17,6 +17,9 @@ First Agument -> File Name associated with the the File being executed
 ```
 
 
+> https://man7.org/linux/man-pages/man2/wait.2.html
+
+
 
      
 
