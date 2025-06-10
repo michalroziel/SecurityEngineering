@@ -26,13 +26,16 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    // Child process
-    if (setpriority(PRIO_PROCESS, 0, 19) < 0) {
-        perror("setpriority failed");
-        exit(EXIT_FAILURE);
-    }
+
 
     if (pid == 0) {
+
+
+        // Child process
+        if (setpriority(PRIO_PROCESS, 0, 19) < 0) {
+            perror("setpriority failed");
+            exit(EXIT_FAILURE);
+        }
 
         printf("Prio : Prozess %d wurde gestartet\n", PRIO_PROCESS);
 
@@ -48,7 +51,15 @@ int main(int argc, char **argv) {
         printf("Started parent process with PID %d\n", pid);
 
         int status;
-        printf("Priorität des Kindprozesses : %d\n ", getpriority(PRIO_PROCESS, pid ));
+
+        sleep(1);
+
+        int prio_child = getpriority(PRIO_PROCESS, pid );
+
+        printf("Priorität des Kindprozesses : %d\n " , prio_child);
+
+
+
         if (waitpid(pid, &status, 0) < 0) {
             perror("waitpid failed");
             exit(EXIT_FAILURE);
