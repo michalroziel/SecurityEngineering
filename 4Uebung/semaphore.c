@@ -14,7 +14,7 @@
 #define SEM_KEY 5678 // Schlüssel für Semaphoren
 
 #define SEM_CAN_WRITE 0 // Semaphore für Schreibzugriff
-#define SEM_CAN_READ 1 // Semaphore für Lesezugriff
+#define SEM_CAN_READ 1 // Semaphore für Lesezugriffls
 
 // Semaphore Operationen deklarieren
 struct sembuf P(int semnum) {

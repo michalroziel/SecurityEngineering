@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Werror
 TARGET=APP
-SRC=4Uebung/forkExec.c
+SRC=4Uebung/2Exercise/firstSolution.c
 
 all: $(TARGET)
 
