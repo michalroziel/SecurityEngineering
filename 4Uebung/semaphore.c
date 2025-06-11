@@ -1,201 +1,158 @@
-//
-// Created by Michal Roziel on 09.06.25.
-//
-
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/ipc.h>                    // Einbindung der Bibliothek für Interprozesskommunikation (IPC)
-#include <sys/shm.h>                    // Einbindung der Bibliothek für Shared Memory
-#include <sys/sem.h>                    // Einbindung der Bibliothek für Semaphoren
-#include <sys/wait.h>                   // Einbindung der Bibliothek für Prozesssteuerung und Warten auf Prozesse
-#include <time.h>
+#include <stdlib.h> // -> lrand48() für Zufallszahlen
+#include <unistd.h> // -> fork()
+#include <sys/ipc.h> // -> IPC-Schlüssel
+#include <sys/shm.h> // -> Shared Memory Funktionen
+#include <sys/sem.h> // -> Semaphoren Funktionen
+#include <sys/wait.h> // -> waitpid()
+#include <time.h> // -> Zeitfunktionen für Zufallszahlengenerierung
 
-#define N_DATA 30                  // Anzahl der Daten, die erzeugt und konsumiert werden
-#define N_SHARED 5                  // Größe des Shared Memory Puffers
+#define N_DATA 2000000 // Anzahl der zu generierenden Daten
+#define N_SHARED 2000 // Anzahl der Daten im Shared Memory
+// HINT Schlüssel der Einfachheit halber fest gewählt
+#define SHM_KEY 1234 // Schlüssel für Shared Memory
+#define SEM_KEY 5678 // Schlüssel für Semaphoren
 
-/**
- * Mittels Semaphoren können wir Prozesse synchronisieren und den Zugriff auf gemeinsame Ressourcen steuern.
- * Diese können kontrolliert auf shared Memmory zugreifen.
- */
+#define SEM_CAN_WRITE 0 // Semaphore für Schreibzugriff
+#define SEM_CAN_READ 1 // Semaphore für Lesezugriff
 
-// Definition einer Union für die Semaphore-Operationen
-// Bei Unions wird der selbe Speicherplatz für alle Elemente genutzt
-union semunion {
-    int val;                                // Wert, der über SETVAL gesetzt wird
-    struct semid_ds *buf;                   // Buffer für IPC_STAT und IPC_SET
-    unsigned short *array;                  // Array für GETALL und SETALL
-};
+// Semaphore Operationen deklarieren
+struct sembuf P(int semnum) {
+    return (struct sembuf){
+        semnum, -1, 0
+    };
+} // HINT P-Operation (Warten auf Semaphore) ~= "wait" oder "lock"
+struct sembuf V(int semnum) {
+    return (struct sembuf){
+        semnum, +1, 0
+    };
+} // HINT V-Operation (Freigeben der Semaphore) ~= "signal" oder "unlock"
 
-// Funktion für die P-Operation (Warten) auf einer Semaphore
-// Signal -1 auf einer Semaphore bedeutet, dass der Wert der Semaphore um 1 verringert wird und der Prozess auf die Ressource wartet
-void semaphore_wait(int sem_id, int sem_num) {
-    struct sembuf sembuf;                   // Struktur für Semaphore-Operationen
-    sembuf.sem_num = sem_num;               // Nummer der Semaphore im Set
-    sembuf.sem_op = -1;                     // P-Operation (decrement)
-    semop(sem_id, &sembuf, 1);              // Ausführen der Semaphore-Operation
-}
+// Shared Memory initialisieren
+int* init_shared_memory(int *shm_id) {
+    // HINT man wuerde normalerweise hier einen IPC-Schlüssel genereieren lasssen mittels ftok() zB, fuer die Demo verwenden wir der Einfachheit halber einen festen Schlüssel
+    *shm_id = shmget(SHM_KEY, sizeof(int) * N_SHARED, IPC_CREAT | 0666); // Erstellen Shared Memory Segment, Größe: sizeof(int) * N_SHARED => 2000 int-Werte
+     // IPC_CREAT: Segment erstellen, falls es nicht existiert
+     // 0666: Zugriffsrechte (Lesen und Schreiben für alle)
+     // HINT 0 -> signalisiert C Compiler, dass es sich um Oktalzahl handelt
 
-// Funktion für die V-Operation (Signalisieren) auf einer Semaphore
-// Signal 1 auf einer Semaphore bedeutet, dass der Wert der Semaphore um 1 erhöht wird und der Prozess die Ressource freigibt
-void semaphore_signal (int sem_id, int sem_num) {
-    struct sembuf sembuf;                   // Struktur für Semaphore-Operationen
-    sembuf.sem_num = sem_num;               // Nummer der Semaphore im Set
-    sembuf.sem_op = 1;                      // V-Operation (increment)
-    semop(sem_id, &sembuf, 1);              // Ausführen der Semaphore-Operation
-}
-
-// Funktion zum Bereinigen von Shared Memory und Semaphoren
-// smh_id: ID des Shared Memory Segments
-// sem_id: ID des Semaphore Sets
-void cleanup (int shm_id, int sem_id) {
-    // Shared Memory Segment löschen
-    // Prüfen, ob das Löschen des Shared Memory erfolgreich war
-    // IPC_RMID: Flag zum Löschen des Shared Memory Segments
-    // NULL: Argumente für die Funktion shmctl
-    // Gibt -1 zurück, wenn das Löschen fehlschlägt
-    if (shmctl(shm_id, IPC_RMID, NULL) == -1) {
-        perror("shmctl");               // Fehlermeldung, falls das Löschen fehlschlägt
-        exit(EXIT_FAILURE);             // Programmabbruch bei Fehler
+    if (*shm_id == -1) {
+        perror("shmget");
+        exit(EXIT_FAILURE);
     }
 
-    // Semaphore löschen
-    // Prüfen, ob das Löschen der Semaphore erfolgreich war
-    // 0: Nummer der Semaphore im Set / sem_num
-    // IPC_RMID: Flag zum Löschen des Semaphore Sets
-    // Gibt -1 zurück, wenn das Löschen fehlschlägt
-    if (semctl(sem_id, 0, IPC_RMID) == -1) {
-        perror("semctl");               // Fehlermeldung, falls das Löschen fehlschlägt
-        exit(EXIT_FAILURE);             // Programmabbruch bei Fehler
+    int *shared_buffer = (int *)shmat(*shm_id, NULL, 0); // Anhängen des Shared Memory Segments an den Adressraum des Prozesses gibt Pointer auf Shared Memory Segment zurück
+
+    if (shared_buffer == (void *)-1) {
+        perror("shmat");
+        exit(EXIT_FAILURE);
     }
+
+    return shared_buffer;
+}
+
+// Semaphoren initialisieren
+int init_semaphores() {
+    // auch hier der Einfachheit halber einen festen Schlüssel verwendet
+    int sem_id = semget(SEM_KEY, 2, IPC_CREAT | 0666);
+    // Erstellen eines Semaphor-Sets mit 2 Semaphoren (für Schreiben und Lesen), falls es nicht existiert
+    // IPC_CREAT: Set erstellen, falls es nicht existiert
+
+    if (sem_id == -1) {
+        perror("semget");
+        exit(EXIT_FAILURE);
+    }
+
+    semctl(sem_id, SEM_CAN_WRITE, SETVAL, 1); // Initialisieren der Schreib-Semaphore auf 1 (erlaubt Schreiben)
+    semctl(sem_id, SEM_CAN_READ, SETVAL, 0); // Initialisieren der Lese-Semaphore auf 0 (nicht erlaubt zu lesen, bis Daten geschrieben wurden)
+
+    return sem_id;
+}
+
+// Ressourcen entfernen
+void remove_resources(int shm_id, int sem_id, int *shared_buffer) {
+    shmdt(shared_buffer);
+    shmctl(shm_id, IPC_RMID, NULL);
+    semctl(sem_id, 0, IPC_RMID);
+}
+
+// Erzeugerprozess wird Daten generieren und in den Shared Memory schreiben
+void producer_process(int *shared_buffer, int sem_id) {
+    srand48(time(NULL));
+    int data[N_DATA];
+    for (int i = 0; i < N_DATA; i++) {
+        data[i] = lrand48();
+    }
+
+    for (int i = 0; i < N_DATA; i += N_SHARED) {
+        int count = (N_DATA - i < N_SHARED) ? (N_DATA - i) : N_SHARED;
+
+        struct sembuf p_op = P(SEM_CAN_WRITE); // P-Operation auf Schreib-Semaphore
+        semop(sem_id, &p_op, 1); // Warten auf Schreib-Semaphore
+
+        printf("Producer: schreibe Datenblock %d (Index %d bis %d)\n",
+           i / N_SHARED, i, i + count - 1);
+
+        // Daten in den Shared Memory schreiben
+        for (int j = 0; j < count; j++) {
+            shared_buffer[j] = data[i + j];
+        }
+
+        printf("Producer: Datenblock %d geschrieben, Consumer darf lesen.\n", i / N_SHARED);
+
+        struct sembuf v_op = V(SEM_CAN_READ); // V-Operation auf Lese-Semaphore
+
+        // Freigeben des Lese-Semaphore, damit der Verbraucher lesen kann
+        semop(sem_id, &(v_op), 1);
+    }
+}
+
+// Verbraucherprozess wird Daten aus dem Shared Memory lesen
+void consumer_process(int *shared_buffer, int sem_id) {
+    for (int i = 0; i < N_DATA; i += N_SHARED) {
+        int count = (N_DATA - i < N_SHARED) ? (N_DATA - i) : N_SHARED;
+
+        struct sembuf p_op = P(SEM_CAN_READ);
+
+        printf("Consumer: warte auf Datenblock %d\n", i / N_SHARED);
+
+        semop(sem_id, &p_op, 1); // Warten auf Lese-Semaphore
+
+        for (int j = 0; j < count; j++) {
+            volatile int val = shared_buffer[j]; // Lesen der Daten aus dem Shared Memory -> Datenverarbeitung
+        }
+
+        printf("Consumer: habe Datenblock %d gelesen (Index %d bis %d)\n",
+           i / N_SHARED, i, i + count - 1);
+
+        struct sembuf v_op = V(SEM_CAN_WRITE);
+        semop(sem_id, &v_op, 1); // Freigeben des Schreib-Semaphore, damit der Erzeuger weiterschreiben kann
+    }
+
+    shmdt(shared_buffer); // Trennen von Shared Memory Segment
+
+    exit(EXIT_SUCCESS);
 }
 
 int main() {
-    int shm_id, sem_id;                 // IDs für Shared Memory und Semaphoren
-    int *shared_memory;                 // Pointer auf Shared Memory
-    pid_t pid;                          // Prozess-ID, Datentyp pid_t / Integer
-    key_t key = IPC_PRIVATE;            // Generieren eines eindeutigen Schlüssels mit IPC_PRIVATE, Datentyp key_t / Integer
+    int shm_id;
+    int *shared_buffer = init_shared_memory(&shm_id);
+    int sem_id = init_semaphores();
 
-    // Shared Memory anlegen
-    // key: Schlüssel für das Shared Memory Segment
-    // N_SHARED * sizeof(int): Größe des Shared Memory Segments, sizeof(int) = 4 Bytes
-    // 0666 | IPC_CREAT: Zugriffsrechte und Flags für das Anlegen des Shared Memory Segments
-    shm_id = shmget(key, N_SHARED * sizeof(int), 0666 | IPC_CREAT);
-    // Prüfen, ob das Anlegen des Shared Memory erfolgreich war
-    if (shm_id < 0) {
-        perror("shmget");               // Fehlermeldung, falls das Anlegen fehlschlägt, in diesem Fall wird ein Wert < 0 zurückgegeben
-        exit(EXIT_FAILURE);             // Programmabbruch bei Fehler
-    }
+    pid_t pid = fork();
 
-    // Shared Memory an den Adressraum anhängen
-    // (int *): Typ des Shared Memory Segments (int-Array)
-    // shmat: Funktion zum Anhängen des Shared Memory Segments
-    // shm_id: ID des Shared Memory Segments
-    // NULL: Adresse, an die das Shared Memory Segment angehängt werden soll
-    // 0: Flags für das Anhängen des Shared Memory Segments
-    shared_memory = (int *)shmat(shm_id, NULL, 0);
-    // Prüfen, ob das Anhängen des Shared Memory erfolgreich war
-    if (shared_memory == (int *) -1) {
-        perror("shmat");                // Fehlermeldung, falls das Anhängen fehlschlägt, in diesem Fall wird ein Wert -1 zurückgegeben
-        exit(EXIT_FAILURE);             // Programmabbruch bei Fehler
-    }
-
-    // Semaphoren anlegen
-    // key: Schlüssel für das Semaphore Set
-    // 2: Anzahl der Semaphoren im Set
-    // 0666 | IPC_CREAT: Zugriffsrechte und Flags für das Anlegen des Semaphore Sets
-    sem_id = semget(key, 2, 0666 | IPC_CREAT);
-    // Prüfen, ob das Anlegen des Semaphore Sets erfolgreich war
-    if (sem_id < 0) {
-        perror("semget");               // Fehlermeldung, falls das Anlegen fehlschlägt, in diesem Fall wird ein Wert < 0 zurückgegeben
-        shmdt(shared_memory);           // Shared Memory ablösen
-        exit(EXIT_FAILURE);             // Programmabbruch bei Fehler
-    }
-
-    // Semaphoren initialisieren
-    // sem_union: Union für die Semaphore-Operationen
-    union semunion sem_union;
-    sem_union.val = 0;                  // Initial S1: Lesen verboten
-    // semctl: Funktion für Semaphore-Operationen, wird zum setzen eines Wertes verwendet
-    // sem_id: ID des Semaphore Sets
-    // 0: Nummer der Semaphore im Set
-    // SETVAL: Operation zum Setzen des Werts
-    // sem_union: Union für die Semaphore-Operationen
-    // Prüfen, ob das Setzen des Werts erfolgreich war
-    if (semctl(sem_id, 0, SETVAL, sem_union) < 0) {
-        perror("Fehler beim Initialisieren von Semaphore 0");   // Fehlermeldung, falls das Initialisieren fehlschlägt, in diesem Fall wird ein Wert < 0 zurückgegeben
-        exit(EXIT_FAILURE);                                     // Programmabbruch bei Fehler
-    }
-
-    // semctl: Funktion für Semaphore-Operationen, wird zum setzen eines Wertes verwendet
-    // sem_id: ID des Semaphore Sets
-    // 1: Nummer der Semaphore im Set
-    // SETVAL: Operation zum Setzen des Werts
-    // sem_union: Union für die Semaphore-Operationen
-    // Prüfen, ob das Setzen des Werts erfolgreich war
-    sem_union.val = 1;                  // Initial S2: Schreiben erlaubt
-    if (semctl(sem_id, 1, SETVAL, sem_union) < 0) {
-        perror("Fehler beim Initialisieren von Semaphore 1");   // Fehlermeldung, falls das Initialisieren fehlschlägt, in diesem Fall wird ein Wert < 0 zurückgegeben
-        exit(EXIT_FAILURE);                                     // Programmabbruch bei Fehler
-    }
-
-    // Prozess P1 erzeugt den Kindprozess P2
-    // pid ist 0 im Kindprozess und die Prozess-ID des Kindprozesses im Elternprozess
-    pid = fork();
-    // Prüfen, ob das Erzeugen des Prozesses erfolgreich war
-    if (pid < 0) {                                              // Wenn pid < 0, dann ist ein Fehler aufgetreten
-        perror("fork");                                         // Fehlermeldung, falls das Erzeugen des Prozesses fehlschlägt
-        exit(EXIT_FAILURE);                                     // Programmabbruch bei Fehler
-    } else if (pid == 0) {                                      // Wenn pid = 0, dann handelt es sich um den Kindprozess
-        // Kindprozess P2 (Verbraucher)
-        // Schleife über alle Daten in Schritten der Größe N_SHARED
-        for (int i = 0; i < N_DATA; i += N_SHARED) {
-            semaphore_wait(sem_id, 0);  // Warten auf Freigabe durch P1 (S1)
-            // Schleife über alle Daten im Shared Memory Puffer
-            for (int j = 0; j < N_SHARED; ++j) {
-                // Prüfen, ob nur so viele Daten gelesen werden, wie vorhanden sind
-                if (i + j < N_DATA) {
-                    // Ausgabe der gelesenen Daten
-                    printf("P2 liest auf Position [%d]: %d\n", i + j + 1, shared_memory[j]);
-                }
-            }
-
-            semaphore_signal(sem_id, 1); // Signalisieren, dass P2 fertig ist (S2)
-        }
-
-        // Shared Memory ablösen
-        shmdt(shared_memory);
-        exit(EXIT_SUCCESS);             // Erfolgreiches Programmende
+    if (pid < 0) {
+        perror("fork");
+        remove_resources(shm_id, sem_id, shared_buffer); // Ressourcen entfernen bei Fehler
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        consumer_process(shared_buffer, sem_id); // Kindprozess führt Verbraucherprozess aus
     } else {
-        // Vaterprozess P1 (Erzeuger)
-        // Initialisieren des Zufallszahlengenerators
-        // Wird mit der aktuellen Zeit initialisiert, um bei jedem Programmstart unterschiedliche Zufallszahlen zu erhalten
-        srand48(time(NULL));
-        // Schleife über alle Daten in Schritten der Größe N_SHARED
-        for (int i = 0; i < N_DATA; i += N_SHARED) {
-            semaphore_wait(sem_id, 1);  // Warten auf Freigabe durch P2 (S2)
-            // Schleife über alle Daten im Shared Memory Puffer
-            for (int j = 0; j < N_SHARED; ++j) {
-                if (i + j < N_DATA) {
-                    // Prüfen, ob nur so viele Daten geschrieben werden, wie Platz im Shared Memory Puffer ist
-                    shared_memory[j] = lrand48();   // Zufällige Zahl schreiben
-                    // Ausgabe der geschriebenen Daten
-                    printf("P1 schreibt auf Position [%d]: %d\n", i + j + 1, shared_memory[j]);
-                }
-            }
-
-            semaphore_signal(sem_id, 0); // Signalisieren, dass P1 fertig ist (S1)
-        }
-
-        // Auf den Kindprozess warten
-        wait(NULL);
-
-        // Shared Memory ablösen
-        shmdt(shared_memory);
-
-        // Cleanup
-        cleanup(shm_id, sem_id);
+        producer_process(shared_buffer, sem_id); // Elternprozess führt Erzeugerprozess aus
+        wait(NULL); // Warten auf den Kindprozess, um sicherzustellen, dass er beendet ist
+        remove_resources(shm_id, sem_id, shared_buffer);
     }
-    exit(EXIT_SUCCESS);                // Erfolgreiches Programmende
+
+    return EXIT_SUCCESS;
+    //HINT nachschauen, ob Shared Memory und Semaphoren korrekt entfernt wurden: ipcs
 }
