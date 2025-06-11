@@ -23,7 +23,17 @@ int main(int argc, char **argv) {
 
     if (pid == 0) {
         // Child process
+
+        int priority = getpriority(PRIO_PROCESS, 0);
+        printf("Initial priority of child process: %d\n", priority);
+
+
         setpriority(PRIO_PROCESS, 0, 19);
+
+        priority = getpriority(PRIO_PROCESS, 0);
+        printf("Priority of child process after setpriority: %d\n", priority);
+
+
 
         execvp(argv[1], argv+1);
 

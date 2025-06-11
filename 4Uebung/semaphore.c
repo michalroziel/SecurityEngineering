@@ -13,11 +13,11 @@
 #include <time.h>
 
 #define N_DATA 30                  // Anzahl der Daten, die erzeugt und konsumiert werden
-#define N_SHARED 5                   // Größe des Shared Memory Puffers
+#define N_SHARED 5                  // Größe des Shared Memory Puffers
 
 /**
- * Semaphore sind globale Signalflags im System, mit denen sich gegenseitig ausschließende Ressourcen festgelegt werden können.
- * Sie können dazu genutzt werden, bestimmte Prozesse warten zu lassen, bis andere Prozesse abgeschlossen sind.
+ * Mittels Semaphoren können wir Prozesse synchronisieren und den Zugriff auf gemeinsame Ressourcen steuern.
+ * Diese können kontrolliert auf shared Memmory zugreifen.
  */
 
 // Definition einer Union für die Semaphore-Operationen
