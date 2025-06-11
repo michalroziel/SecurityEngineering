@@ -34,7 +34,7 @@ int main() {
    // https://www.geeksforgeeks.org/posix-shared-memory-api/
     int shm_fd = shm_open(MY_SHM_NAME, O_CREAT | O_RDWR, 0666);
     if (shm_fd == -1) {
-        perror("shm_open");
+        perror("shm_open Failure");
         exit(EXIT_FAILURE);
     }
 

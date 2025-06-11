@@ -7,6 +7,7 @@
 #include <string.h> // -> Fehlerbehandlung
 #include <signal.h> // -> psignal()
 
+// Argumente für das neue Programm inklusive Programmname in argv[0]
 int main(int argc, char **argv) {
 
     // Programm erwartet mindestens ein Argument (-> auszuführendes Programm)
@@ -16,7 +17,7 @@ int main(int argc, char **argv) {
     }
 
     // HINT pid_t = Datentyp für Prozess-IDs
-    // fork() erzeugt Sohnprozess, der Kopie des Vaterprozesses ist
+    // fork() erzeugt Sohnprozess, der Kopie des Vaterprozesses istin dem code, warum
     pid_t pid = fork();
 
     if (pid < 0) {
