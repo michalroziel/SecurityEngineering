@@ -21,7 +21,7 @@
 
 //https://man7.org/linux/man-pages/man2/semop.2.html
 
-//https://www.tutorialspoint.com/inter_process_communication/inter_process_communication_semaphores.htm
+//https://www.tutorialspoint.com/inter_process_communication/inter_process_communication_semaphores.html
 
 
 // Semaphore Operationen deklarieren
