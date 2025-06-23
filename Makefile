@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall
 TARGET=APP
-SRC=4Uebung/2Exercise/firstSolution.c
+SRC=4Uebung/semaphore.c
 
 all: $(TARGET)
 
