@@ -1,68 +1,69 @@
 #!/bin/bash
 
-FAIL_EXIT=1
-SUCCESS_EXIT=0
+  RET_FAIL=1
+  RET_SUCCESS=0
 
-WORDLIST="words.txt"
+  DICT="words.txt"
+  USERS=(
+      "Steffi.Jones;\$1\$O7v0C21Z\$2FH7ib2Dxtoq6B83qTgON1"
+      "Marco.Reus;\$1\$Jebn3vQ5\$2k..iqxtXNwfsCFAamWCS0"
+      "Almuth.Schult;\$1\$0ngrMRa1\$uXLzWhnrYzmiRM3fi8Nde1"
+      "Manuel.Neuer;\$1\$1aaPttrp\$VoF2rkOyC/tE.DxzQuuIY1"
+      "Birgit.Prinz;\$1\$7ieEwjFr\$T/jwatbzqhLZNVDEfymB41"
+  )
 
-   ##    Marco.Reus $1$Jebn3vQ5$2k..iqxtXNwfsCFAamWCS0
-   ##    Almuth.Schult $1$0ngrMRa1$uXLzWhnrYzmiRM3fi8Nde1
-   ##    Manuel.Neuer $1$1aaPttrp$VoF2rkOyC/tE.DxzQuuIY1
-   ##    Birgit.Prinz $1$7ieEwjFr$T/jwatbzqhLZNVDEfymB41
+  # Source the progress bar functions - not needed but cool
+  source progress_bar.sh
 
-USERS=(Steffi.Jones $1$O7v0C21Z$2FH7ib2Dxtoq6B83qTgON1
+  # Check if dictionary file exists and is readable
+  if [[ ! -r "$DICT" ]]; then
+      echo "Error: Cannot access wordlist file!"
+      exit $RET_FAIL
+  fi
 
-       )
+  # Count total words in dictionary
+  TOTAL_WORDS=$(wc -l < "$DICT")
+  echo "Starting password cracking... (Dictionary contains $TOTAL_WORDS words)"
 
-if [[ ! -r "$WORDLIST" ]]; then
-    echo -n "ERROR! File not Found !"
-    exit $FAIL_EXIT
-fi
+  for user_entry in "${USERS[@]}"; do
+      # Parse user entry
+      USERNAME="${user_entry%%;*}"
+      PASSWORD_HASH="${user_entry##*;}"
 
-  ## BEGIN CRACKING !
-  ## FORMAT : NAME;HASH
+      # Extract salt from hash
+      SALT_VALUE=$(echo "$PASSWORD_HASH" | cut -d'$' -f3)
 
-for entry in "${USERS[@]}"; do
+      echo -e "\nProcessing user: $USERNAME"
+      echo "Using salt: $SALT_VALUE"
+      echo "Checking passwords..."
 
-  ## EXTRACT USER AND HASH
-  ## https://stackoverflow.com/questions/428109/extract-substring-in-bash
-  ## Name : part of entry before semicolon
-  ## Hash : part of entry after semicolon
-    NAME="${entry%%;*}"
-    HASH="${entry##*;}"
+      PASSWORD_FOUND=0
 
-    ## SALT is the third part, limited by $.
-    ## FIXME -f3
-    SALT=$(echo "$HASH" | cut -d'$' -f3)
-    TARGET_HASH="$HASH"
+      # Initialize progress bar
+      init_progress_bar $TOTAL_WORDS 10
 
-    ## BEGIN LOOKING FOR PASSWORD
-    echo -e "\n NAME : $NAME \n"
-    echo -e "\n SALT : $SALT \n"
-    echo -e "Looking for password ! ...\n"
+      # Process each word in dictionary
+      while read -r PASSWORD_CANDIDATE; do
+          update_progress_bar
 
-    FOUND=0
-    while read -r WORD; do
-        ## -r -> raw input --> no escapes etc.
-        ## https://www.baeldung.com/linux/read-command
-        ## -1 -> MD5
-        TEST_HASH=$(openssl passwd -1 -salt "$SALT" "$WORD")
+          GENERATED_HASH=$(openssl passwd -1 -salt "$SALT_VALUE" "$PASSWORD_CANDIDATE")
 
-        if [[ "$TEST_HASH" == "$TARGET_HASH" ]]; then
+          # Compare hashes
+          if [[ "$GENERATED_HASH" == "$PASSWORD_HASH" ]]; then
+              echo -e "\nSUCCESS: Password for $USERNAME is: $PASSWORD_CANDIDATE"
+              PASSWORD_FOUND=1
+              break
+          fi
+      done < "$DICT"
 
-            echo -e "FOUND ! The PASSWORD of $NAME is : $WORD !"
-            FOUND=1
-            break
-        fi
-    done < "$WORDLIST"
+      # Clear progress line
+      clear_progress_bar
 
-    if [[ $FOUND -eq 0 ]]; then
-        echo -e "${RED}❌ Kein Passwort gefunden für $NAME${NC}"
-    fi
-done
+      # Report if no password found
+      if [[ $PASSWORD_FOUND -eq 0 ]]; then
+          echo "FAILED: No matching password found for $USERNAME"
+      fi
+  done
 
-echo -e "\n✅ Attacke wurde ausgeführt."
-exit $SUCCESS_EXIT
-
-
-
+  echo -e "\nPassword cracking operation complete."
+  exit $RET_SUCCESS
