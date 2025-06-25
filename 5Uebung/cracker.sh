@@ -4,6 +4,10 @@
   RET_SUCCESS=0
 
   DICT="words.txt"
+
+  ## $1 indicates MD-5 based crypt
+  ## SALT : random string unique to each user
+  ## hash candidate word with user salt, and compare
   USERS=(
       "Steffi.Jones;\$1\$O7v0C21Z\$2FH7ib2Dxtoq6B83qTgON1"
       "Marco.Reus;\$1\$Jebn3vQ5\$2k..iqxtXNwfsCFAamWCS0"
@@ -30,7 +34,9 @@
       USERNAME="${user_entry%%;*}"
       PASSWORD_HASH="${user_entry##*;}"
 
-      # Extract salt from hash
+      ## Extract salt from hash
+      ## -d sets delimiter (field separator) to be $
+      ## -f3 requires third field
       SALT_VALUE=$(echo "$PASSWORD_HASH" | cut -d'$' -f3)
 
       echo -e "\nProcessing user: $USERNAME"
@@ -46,6 +52,7 @@
       while read -r PASSWORD_CANDIDATE; do
           update_progress_bar
 
+          ## generate hash of Current DICT word
           GENERATED_HASH=$(openssl passwd -1 -salt "$SALT_VALUE" "$PASSWORD_CANDIDATE")
 
           # Compare hashes
@@ -54,6 +61,7 @@
               PASSWORD_FOUND=1
               break
           fi
+          ## redirect content of words.txt to loop
       done < "$DICT"
 
       # Clear progress line
