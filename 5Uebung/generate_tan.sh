@@ -48,6 +48,7 @@ for (( i=$COUNT; i>0; i-- )); do
 done
 
 # Leert die Benutzer-TAN-Datei und schreibt die Klartext-TANs hinein.
+# Neue Tans für jeden Benutzer 
 # Dies sind die Werte, die vor dem Hashing kamen (Pre-Images).
 >"$USER_TANS_FILE"
 echo "Die folgenden TANs wurden in '$USER_TANS_FILE' für den Benutzer $USER gespeichert:"
