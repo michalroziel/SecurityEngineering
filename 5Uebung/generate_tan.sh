@@ -33,6 +33,8 @@ CHAIN=("$SEED")
 ## S1=Seed, S2=F(S1), S3=F(S2), S4=F(S3), ...S[n]=F(S[n-1])
 ## https://www.infoworld.com/article/2178307/lamport-s-one-time-password-algorithm-or-don-t-talk-to-complete-strangers.html
 
+## awk used to extract only the first field, w/o trailing sha256 dash -
+
 for (( i=1; i<=$COUNT; i++ )); do
   CHAIN[$i]=$(echo -n "${CHAIN[$((i-1))]}" | sha256sum | awk '{print $1}')
 done
