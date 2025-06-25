@@ -8,6 +8,7 @@ export FILE_SIZE_LIMIT=5    ## 5 Kilobyte
         ulimit -t $CPU_TIME_LIMIT
         ## create signal handler to catch cpu limit
         ## after limit is exceeded system sends SIGXCPU
+        ## Signal SIGXCPU :
         ## to process which triggers the sig handler
         trap 'echo "CPU limit exceeded!"; exit 0' SIGXCPU
         echo "Testing CPU limit..."
