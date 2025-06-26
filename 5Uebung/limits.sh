@@ -10,7 +10,7 @@ export FILE_SIZE_LIMIT=5    ## 5 Kilobyte
         ## after limit is exceeded system sends SIGXCPU
         ## Signal SIGXCPU :
         ## to process which triggers the sig handler
-        trap 'echo "CPU limit exceeded!"; exit 0' SIGXCPU
+        trap 'echo "CPU limit exceeded!" ' SIGXCPU
         echo "Testing CPU limit..."
         while true; do
             : # Infinite loop to consume CPU
